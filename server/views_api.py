@@ -73,19 +73,13 @@ class DocumentViewSet(viewsets.ModelViewSet):
 
     def init_learning(self):  # Proof of concept
         print('Called from init_learning')
-        user = self.request.user
-        docs = Document.objects.all().filter(project=self.kwargs['project_id'])
-        for i in range(len(docs)):
-            if docs[i].text.startswith('I'):
-                docs[i].assigned_to = user
-                print(docs[i].text[0:50])
-                docs[i].save()
+        project = self.kwargs['project_id']
+        project.start_new_batch()
 
     def get_queryset(self):
         user = self.request.user
         assigned_docs = Document.objects.filter(project=self.kwargs['project_id'], assigned_to=user)
         results = assigned_docs
-        # TODO: init active/proactive learning here
         if not results:
             self.init_learning()
             results = Document.objects.filter(project=self.kwargs['project_id'], assigned_to=user)
@@ -125,9 +119,6 @@ class AnnotationDocViewSet(viewsets.ModelViewSet):  # return all annotation by d
         document.save()
         project = get_object_or_404(Project, pk=self.kwargs['project_id'])
         project.current_step = project.current_step + 1
-        if not document.seed:
-            #project.update_predicted_scores()
-            project.approve_annotations(user, document)
         project.save()
 
     def destroy(self, request, *args, **kwargs):

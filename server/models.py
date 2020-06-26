@@ -300,12 +300,12 @@ class Project(models.Model):
         return score
 
     def start_new_batch(self, user):
-        # Remove those docs assigned to this user
+        # Approve annotations and Remove those docs assigned to this user
         assigned_docs = Document.objects.filter(assigned_to__username=user.username)
         for i in range(0, len(assigned_docs)):
+            self.approve_annotations(user, assigned_docs[i])
             assigned_docs[i].assigned_to.remove(user)
             assigned_docs[i].save()
-        # TODO: here
 
         # Start new batch
         self.update_predicted_scores()
